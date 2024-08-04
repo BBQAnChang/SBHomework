@@ -33,12 +33,12 @@ public final class Network: SBNetworkClient {
     }
 
     public func request<R>(request: R, completionHandler: @escaping (Result<R.Response, any Error>) -> Void) where R : Request {
-        guard let appId else {
+        guard appId != nil else {
             completionHandler(.failure(NetworkError.noAppId))
             return
         }
 
-        guard let apiToken else {
+        guard apiToken != nil else {
             completionHandler(.failure(NetworkError.noApiToken))
             return
         }
