@@ -30,7 +30,7 @@ public struct UserUpdateParams {
 }
 
 /// Sendbird의 User를 나타내는 객체입니다
-public struct SBUser {
+public struct SBUser: ServiceModelDescribing {
     public init(userId: String, nickname: String? = nil, profileURL: String? = nil) {
         self.userId = userId
         self.nickname = nickname

@@ -22,21 +22,31 @@ public protocol SBUserStorage {
     func clear()
 }
 
-public class UserStorage: SBUserStorage {
-    private var users: [String: SBUser] = [:]
+public struct UserStorage: SBUserStorage {
+    private let provider: UserLocalProvider
     private let locker = NSRecursiveLock()
 
+    init() {
+        UserCoreData.shared.configure()
+        provider = UserLocalProvider(context: UserCoreData.shared.newBackgroundContext)
+    }
+
     public func upsertUser(_ user: SBUser) {
-        defer {
-            locker.unlock()
-        }
         locker.lock()
 
-        if let updatedUser = users[user.userId] {
-            users[user.userId] = updatedUser
-        } else {
-            users[user.userId] = user
+        do {
+            let users = try provider.fetch(fetchType: .id(user.userId))
+
+            if users.isEmpty {
+                try provider.create(user)
+            } else {
+                try provider.update(fetchType: .id(user.userId), user: user)
+            }
+        } catch {
+            debugPrint(error)
         }
+
+        locker.unlock()
     }
     
     public func getUsers() -> [SBUser] {
@@ -45,7 +55,11 @@ public class UserStorage: SBUserStorage {
         }
         locker.lock()
 
-        return users.map { $1 }
+        do {
+            return try provider.fetch(fetchType: .all)
+        } catch {
+            return []
+        }
     }
     
     public func getUsers(for nickname: String) -> [SBUser] {
@@ -54,7 +68,11 @@ public class UserStorage: SBUserStorage {
         }
         locker.lock()
 
-        return users.map { $1 }.filter { $0.nickname == nickname }
+        do {
+            return try provider.fetch(fetchType: .nickname(nickname))
+        } catch {
+            return []
+        }
     }
     
     public func getUser(for userId: String) -> (SBUser)? {
@@ -63,7 +81,11 @@ public class UserStorage: SBUserStorage {
         }
         locker.lock()
         
-        return users[userId]
+        do {
+            return try provider.fetch(fetchType: .id(userId)).first
+        } catch {
+            return nil
+        }
     }
 
     public func clear() {
