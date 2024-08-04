@@ -8,7 +8,17 @@
 import Foundation
 
 public protocol Request {
-    associatedtype Response
+    associatedtype Response: Decodable
+
+    var timeoutInterval: TimeInterval { get }
+    var baseURL: String { get }
+    var method: NetworkMethod { get }
+    var body: NetworkBody? { get }
+    var path: String { get }
+    var parameters: [String: Any] { get }
+    var header: [String: String] { get }
+
+    func parse(_ response: Any) -> Response
 }
 
 public protocol SBNetworkClient {
