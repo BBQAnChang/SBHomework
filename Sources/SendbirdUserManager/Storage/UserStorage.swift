@@ -23,9 +23,15 @@ public protocol SBUserStorage {
 }
 
 public class UserStorage: SBUserStorage {
-    @Atomic private var users: [String: SBUser] = [:]
+    private var users: [String: SBUser] = [:]
+    private let locker = NSRecursiveLock()
 
     public func upsertUser(_ user: SBUser) {
+        defer {
+            locker.unlock()
+        }
+        locker.lock()
+
         if let updatedUser = users[user.userId] {
             users[user.userId] = updatedUser
         } else {
@@ -34,15 +40,30 @@ public class UserStorage: SBUserStorage {
     }
     
     public func getUsers() -> [SBUser] {
-        users.map { $1 }
+        defer {
+            locker.unlock()
+        }
+        locker.lock()
+
+        return users.map { $1 }
     }
     
     public func getUsers(for nickname: String) -> [SBUser] {
-        users.map { $1 }.filter { $0.nickname == nickname }
+        defer {
+            locker.unlock()
+        }
+        locker.lock()
+
+        return users.map { $1 }.filter { $0.nickname == nickname }
     }
     
     public func getUser(for userId: String) -> (SBUser)? {
-        users[userId]
+        defer {
+            locker.unlock()
+        }
+        locker.lock()
+        
+        return users[userId]
     }
 
     public func clear() {

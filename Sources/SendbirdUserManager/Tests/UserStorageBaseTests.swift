@@ -234,7 +234,7 @@ open class UserStorageBaseTests: XCTestCase {
         // Now that all set operations have been fulfilled, we retrieve them on a different thread
         DispatchQueue.global().async {
             let retrievedUsers = storage.getUsers()
-            
+            print(retrievedUsers)
             XCTAssertEqual(users.count, retrievedUsers.count)
             
             for user in users {
