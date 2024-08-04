@@ -54,3 +54,33 @@ public protocol SBUserManager {
     /// Get users API를 활용할 때 limit은 100으로 고정합니다
     func getUsers(nicknameMatches: String, completionHandler: ((UsersResult) -> Void)?)
 }
+
+public final class UserManager: SBUserManager {
+    public var networkClient: SBNetworkClient = Network()
+    public let userStorage: SBUserStorage = UserStorage()
+
+    public func initApplication(applicationId: String, apiToken: String) {
+        networkClient.appId = applicationId
+        networkClient.apiToken = apiToken
+    }
+
+    public func createUser(params: UserCreationParams, completionHandler: ((UserResult) -> Void)?) {
+
+    }
+
+    public func createUsers(params: [UserCreationParams], completionHandler: ((UsersResult) -> Void)?) {
+
+    }
+
+    public func updateUser(params: UserUpdateParams, completionHandler: ((UserResult) -> Void)?) {
+
+    }
+
+    public func getUser(userId: String, completionHandler: ((UserResult) -> Void)?) {
+
+    }
+
+    public func getUsers(nicknameMatches: String, completionHandler: ((UsersResult) -> Void)?) {
+
+    }
+}

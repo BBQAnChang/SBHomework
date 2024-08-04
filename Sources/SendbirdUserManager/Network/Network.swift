@@ -8,16 +8,42 @@
 import Foundation
 
 public enum NetworkError: Error {
+    case noAppId
+    case noApiToken
     case invalidURL
     case requestFailed
     case decodingError
 }
 
 public final class Network: SBNetworkClient {
+    public var appId: String?
+    public var apiToken: String?
+
     private let session = URLSession.shared
-    
+
+    private var baseURL: String {
+        guard let appId else { return "" }
+        return "https://api-\(appId).sendbird.com/v3/"
+    }
+
+    // https://sendbird.com/docs/chat/platform-api/v3/prepare-to-use-api#2-authentication 참조
+    private var deafaultHeader: [String: String] {
+        guard let apiToken else { return [:] }
+        return ["Api-Token": apiToken]
+    }
+
     public func request<R>(request: R, completionHandler: @escaping (Result<R.Response, any Error>) -> Void) where R : Request {
-        guard var urlComponents = URLComponents(string: "\(request.baseURL)\(request.path)") else {
+        guard let appId else {
+            completionHandler(.failure(NetworkError.noAppId))
+            return
+        }
+
+        guard let apiToken else {
+            completionHandler(.failure(NetworkError.noApiToken))
+            return
+        }
+
+        guard var urlComponents = URLComponents(string: "\(baseURL)\(request.path)") else {
             completionHandler(.failure(NetworkError.invalidURL))
             return
         }
@@ -30,15 +56,16 @@ public final class Network: SBNetworkClient {
             return
         }
 
-        var requset = URLRequest(url: url)
-        requset.httpMethod = request.method.rawValue
-        requset.timeoutInterval = request.timeoutInterval
-        requset.setValue(request.body?.contentType, forHTTPHeaderField: NetworkBody.headerField)
-        requset.httpBody = request.body?.data
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = request.method.rawValue
+        urlRequest.timeoutInterval = request.timeoutInterval
+        urlRequest.setValue(request.body?.contentType, forHTTPHeaderField: NetworkBody.headerField)
+        urlRequest.httpBody = request.body?.data
 
-        request.header.forEach { requset.addValue($1, forHTTPHeaderField: $0) }
+        deafaultHeader.forEach { urlRequest.addValue($1, forHTTPHeaderField: $0) }
+        request.header.forEach { urlRequest.addValue($1, forHTTPHeaderField: $0) }
 
-        let task = session.dataTask(with: requset) { data, _, error in
+        let task = session.dataTask(with: urlRequest) { data, _, error in
             if let error {
                 completionHandler(.failure(error))
                 return

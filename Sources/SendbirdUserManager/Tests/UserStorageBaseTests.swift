@@ -12,7 +12,7 @@ import XCTest
 /// 사용을 위해서는 해당 클래스를 상속받고,
 /// `open func userStorage() -> SBUserStorage?`를 override한뒤, 본인이 구현한 SBUserStorage의 인스턴스를 반환하도록 합니다.
 open class UserStorageBaseTests: XCTestCase {
-    open func userStorage() -> SBUserStorage? { nil }
+    open func userStorage() -> SBUserStorage? { UserStorage() }
     
     public func testSetUser() throws {
         let storage = try XCTUnwrap(self.userStorage())
@@ -202,7 +202,7 @@ open class UserStorageBaseTests: XCTestCase {
                 // Here we will wait for a brief moment to let the setUser operation potentially finish.
                 // In real scenarios, this delay might not guarantee the order of operations, but for testing purposes it's useful.
                 usleep(1000)
-                
+
                 let retrievedUser = storage.getUser(for: "\(i)")
                 XCTAssertEqual(user.userId, retrievedUser?.userId)
                 XCTAssertEqual(user.nickname, retrievedUser?.nickname)

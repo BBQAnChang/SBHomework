@@ -19,3 +19,27 @@ public protocol SBUserStorage {
     /// 현재 저장되어있는 유저들 중에 지정된 userId를 가진 유저를 반환합니다.
     func getUser(for userId: String) -> (SBUser)?
 }
+
+public class UserStorage: SBUserStorage {
+    @Atomic private var users: [String: SBUser] = [:]
+
+    public func upsertUser(_ user: SBUser) {
+        if let updatedUser = users[user.userId] {
+            users[user.userId] = updatedUser
+        } else {
+            users[user.userId] = user
+        }
+    }
+    
+    public func getUsers() -> [SBUser] {
+        users.map { $1 }
+    }
+    
+    public func getUsers(for nickname: String) -> [SBUser] {
+        users.map { $1 }.filter { $0.nickname == nickname }
+    }
+    
+    public func getUser(for userId: String) -> (SBUser)? {
+        users[userId]
+    }
+}
