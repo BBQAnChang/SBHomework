@@ -51,7 +51,3 @@ final class UserCoreData {
         }
     }
 }
-
-extension UserCoreData {
-
-}

@@ -60,7 +60,7 @@ public final class UserManager: SBUserManager {
     public let userStorage: SBUserStorage = UserStorage()
 
     public func initApplication(applicationId: String, apiToken: String) {
-        if Environment.appId != applicationId {
+        if SBUserDefaults.appId != applicationId {
             userStorage.clear()
         }
         
