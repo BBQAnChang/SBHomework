@@ -61,4 +61,17 @@ extension UserCoreDataController {
             try context.save()
         }
     }
+
+    // Clear
+    func clear() throws {
+        try context.performAndWait {
+            let deleteFetch = NSFetchRequest<NSFetchRequestResult>(entityName: M.entityName)
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: deleteFetch)
+            deleteRequest.resultType = .resultTypeStatusOnly
+
+            if let batchDelete = try context.execute(deleteRequest) as? NSBatchDeleteResult {
+                try context.save()
+            }
+        }
+    }
 }

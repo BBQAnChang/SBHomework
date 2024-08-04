@@ -53,4 +53,8 @@ struct UserLocalProvider {
         let managedObject = managedObjects.first
         try controller.update(from: managedObject, to: user)
     }
+
+    func clear() throws {
+        try controller.clear()
+    }
 }

@@ -89,6 +89,10 @@ public struct UserStorage: SBUserStorage {
     }
 
     public func clear() {
-        
+        do {
+            try provider.clear()
+        } catch {
+            debugPrint(error)
+        }
     }
 }
