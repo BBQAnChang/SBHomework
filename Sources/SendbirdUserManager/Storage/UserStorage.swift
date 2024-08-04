@@ -18,6 +18,8 @@ public protocol SBUserStorage {
     func getUsers(for nickname: String) -> [SBUser]
     /// 현재 저장되어있는 유저들 중에 지정된 userId를 가진 유저를 반환합니다.
     func getUser(for userId: String) -> (SBUser)?
+
+    func clear()
 }
 
 public class UserStorage: SBUserStorage {
@@ -41,5 +43,9 @@ public class UserStorage: SBUserStorage {
     
     public func getUser(for userId: String) -> (SBUser)? {
         users[userId]
+    }
+
+    public func clear() {
+        
     }
 }
