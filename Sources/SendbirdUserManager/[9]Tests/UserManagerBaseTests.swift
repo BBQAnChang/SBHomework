@@ -42,7 +42,8 @@ open class UserManagerBaseTests: XCTestCase {
             XCTAssertEqual(clearedUsers.count, 0, "Data should be cleared after initializing with a different Application ID")
         }
     }
-    
+
+    // 유저 생성 테스트
     public func testCreateUser() throws {
         let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
@@ -65,7 +66,44 @@ open class UserManagerBaseTests: XCTestCase {
         
         wait(for: [expectation], timeout: 10.0)
     }
-    
+
+    // 중복된 유저 생성 테스트
+    public func testCreateDuplicatedUser() throws {
+        let userManager = try XCTUnwrap(self.userManager())
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
+
+        let userId1 = UUID().uuidString
+        let userNickname1 = UUID().uuidString
+
+        let params1 = UserCreationParams(userId: userId1, nickname: userNickname1, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+        let params2 = UserCreationParams(userId: userId1, nickname: userNickname1, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+
+        let expectation = self.expectation(description: "Wait for users creation")
+
+        userManager.createUser(params: params1) { result in
+            switch result {
+            case .success(let user):
+                XCTAssertNotNil(user)
+                XCTAssertEqual(user.id, userId1)
+                userManager.createUser(params: params2) { result in
+                    switch result {
+                    case .success:
+                        XCTFail("No Duplicated User")
+                    case .failure(let error):
+                        XCTAssertNotNil(error)
+                    }
+                    expectation.fulfill()
+                }
+            case .failure(let error):
+                XCTFail("Failed with error: \(error)")
+            }
+            expectation.fulfill()
+        }
+
+        wait(for: [expectation], timeout: 10.0)
+    }
+
+    // 유저 다수 생성 테스트
     public func testCreateUsers() throws {
         let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
@@ -95,7 +133,43 @@ open class UserManagerBaseTests: XCTestCase {
         
         wait(for: [expectation], timeout: 10.0)
     }
-    
+
+    // 중복 유저 다수 생성 테스트
+    public func testCreateDuplicatedUsers() throws {
+        let userManager = try XCTUnwrap(self.userManager())
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
+
+        let userId1 = UUID().uuidString
+        let userNickname1 = UUID().uuidString
+
+        let params1 = UserCreationParams(userId: userId1, nickname: userNickname1, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+
+        let expectation = self.expectation(description: "Wait for users creation")
+
+        userManager.createUsers(params: [params1, params1]) { result in
+            switch result {
+            case .failure(let error):
+                guard let userManagerError = error as? UserManagerError else {
+                    XCTFail("Failed with error: \(error)")
+                    return
+                }
+                switch userManagerError {
+                case let .createUsersFailed(users):
+                    XCTAssertTrue(users.count == 1)
+                default:
+                    XCTFail("No createUsersFailed")
+                }
+            default:
+                XCTFail("No Duplicated User")
+            }
+
+            expectation.fulfill()
+        }
+
+        wait(for: [expectation], timeout: 10.0)
+    }
+
+    // 유저 업데이트 테스트
     public func testUpdateUser() throws {
         let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
@@ -130,6 +204,7 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
+    // 유저 받아오기 테스트
     public func testGetUser() throws {
         let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
@@ -162,6 +237,7 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
+    // 유저 닉네임으로 받아오기 테스트
     public func testGetUsersWithNicknameFilter() throws {
         let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
@@ -199,7 +275,7 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
-    // Test that trying to create more than 10 users at once should fail
+    // 유저 복수 생성 최대값 테스트
     public func testCreateUsersLimit() throws {
         let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
@@ -222,7 +298,7 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
-    // Test race condition when simultaneously trying to update and fetch a user
+    // 유저 업데이트 레이스 컨디션 테스트
     public func testUpdateUserRaceCondition() throws {
         let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
@@ -264,7 +340,7 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation1, expectation2], timeout: 10.0)
     }
     
-    // Test for edge cases where the nickname to be matched is either empty or consists of spaces
+    // 닉네임이 비어있을 경우 getUser 테스트
     public func testGetUsersWithEmptyNickname() throws {
         let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
@@ -284,6 +360,7 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
+    // 유저 단수 생성건에 RateLimit 테스트
     public func testRateLimitCreateUser() throws {
         let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
