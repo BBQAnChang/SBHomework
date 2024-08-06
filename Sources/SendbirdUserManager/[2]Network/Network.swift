@@ -77,7 +77,8 @@ public final class Network: SBNetworkClient {
             }
 
             do {
-                let response = try JSONDecoder().decode(R.Response.self, from: data)
+
+                let response = try request.parse(data)
                 completionHandler(.success(response))
             } catch {
                 completionHandler(.failure(error))

@@ -9,18 +9,6 @@ import Foundation
 
 extension API {
     struct CreateUser: Request {
-        struct Response: Decodable {
-            enum CodingKeys: String, CodingKey {
-                case userId = "user_id"
-                case nickname
-                case profileURL = "profile_url"
-            }
-
-            let userId: String
-            let nickname: String
-            let profileURL: String?
-        }
-
         var method: NetworkMethod { .post }
         var path: String { "/users" }
         var body: NetworkBody? { nil }
@@ -29,6 +17,10 @@ extension API {
 
         init(requestParam: UserCreationParams) {
             self.requestParam = requestParam
+        }
+
+        func parse(_ data: Data) throws -> UserResponse {
+            return try JSONDecoder().decode(UserResponse.self, from: data)
         }
     }
 }

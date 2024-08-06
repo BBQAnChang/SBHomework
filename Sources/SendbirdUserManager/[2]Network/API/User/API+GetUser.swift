@@ -10,38 +10,25 @@ import Foundation
 extension API {
     struct GetUsers: Request {
         struct Response: Decodable {
-            struct User: Decodable {
-                enum CodingKeys: String, CodingKey {
-                    case userId = "user_id"
-                    case nickname
-                    case profileURL = "profile_url"
-                }
-
-                let userId: String
-                let nickname: String
-                let profileURL: String?
-            }
-
-            let users: [User]
+            let users: [UserResponse]
         }
 
         var method: NetworkMethod { .get }
         var path: String { "/users" }
+        var parameters: [String : Any] { ["nickname": nickname] }
+
+        private let nickname: String
+
+        init(nickname: String) {
+            self.nickname = nickname
+        }
+
+        func parse(_ data: Data) throws -> Response {
+            return try JSONDecoder().decode(Response.self, from: data)
+        }
     }
 
     struct GetUser: Request {
-        struct Response: Decodable {
-            enum CodingKeys: String, CodingKey {
-                case userId = "user_id"
-                case nickname
-                case profileURL = "profile_url"
-            }
-
-            let userId: String
-            let nickname: String
-            let profileURL: String?
-        }
-
         var method: NetworkMethod { .get }
         var path: String { "/users/\(userId)" }
 
@@ -49,6 +36,10 @@ extension API {
 
         init(userId: String) {
             self.userId = userId
+        }
+
+        func parse(_ data: Data) throws -> UserResponse {
+            return try JSONDecoder().decode(UserResponse.self, from: data)
         }
     }
 }

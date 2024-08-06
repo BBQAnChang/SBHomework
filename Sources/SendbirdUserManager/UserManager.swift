@@ -69,7 +69,14 @@ public final class UserManager: SBUserManager {
     }
 
     public func createUser(params: UserCreationParams, completionHandler: ((UserResult) -> Void)?) {
-
+        networkClient.request(request: API.CreateUser(requestParam: params)) { [weak self] result in
+            switch result {
+            case let .success(response):
+                self?.didSuccessUpsert(response, completionHandler: completionHandler)
+            case let .failure(error):
+                completionHandler?(.failure(error))
+            }
+        }
     }
 
     public func createUsers(params: [UserCreationParams], completionHandler: ((UsersResult) -> Void)?) {
@@ -77,14 +84,41 @@ public final class UserManager: SBUserManager {
     }
 
     public func updateUser(params: UserUpdateParams, completionHandler: ((UserResult) -> Void)?) {
-
+        networkClient.request(request: API.UpdateUser(updateParams: params)) { [weak self] result in
+            switch result {
+            case let .success(response):
+                self?.didSuccessUpsert(response, completionHandler: completionHandler)
+            case let .failure(error):
+                completionHandler?(.failure(error))
+            }
+        }
     }
 
     public func getUser(userId: String, completionHandler: ((UserResult) -> Void)?) {
-
+        networkClient.request(request: API.GetUser(userId: userId)) { result in
+            switch result {
+            case let .success(response):
+                completionHandler?(.success(response.sbUser))
+            case let .failure(error):
+                completionHandler?(.failure(error))
+            }
+        }
     }
 
     public func getUsers(nicknameMatches: String, completionHandler: ((UsersResult) -> Void)?) {
+        networkClient.request(request: API.GetUsers(nickname: nicknameMatches)) { result in
+            switch result {
+            case let .success(response):
+                completionHandler?(.success(response.users.map { $0.sbUser }))
+            case let .failure(error):
+                completionHandler?(.failure(error))
+            }
+        }
+    }
 
+    private func didSuccessUpsert(_ response: UserResponse, completionHandler: ((UserResult) -> Void)?) {
+        let localUser = response.sbUser
+        userStorage.upsertUser(localUser)
+        completionHandler?(.success(localUser))
     }
 }

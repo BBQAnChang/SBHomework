@@ -16,6 +16,8 @@ public protocol Request {
     var path: String { get }
     var parameters: [String: Any] { get }
     var header: [String: String] { get }
+
+    func parse(_ data: Data) throws -> Response
 }
 
 public extension Request {
