@@ -10,7 +10,12 @@ import Foundation
 final class QueueProcessor<T> {
     struct QueueItem {
         let element: T
-        let execute: ((T) -> Void)?
+        let execute: ((T) -> Void)
+
+        init(element: T, execute: @escaping (T) -> Void) {
+            self.element = element
+            self.execute = execute
+        }
     }
 
     enum Error: Swift.Error {
@@ -52,13 +57,13 @@ final class QueueProcessor<T> {
 
     // 큐에서 항목을 소비하는 메서드
     @objc private func processQueue() {
-        guard items.isEmpty == false else {
+        guard items.isEmpty == false, let item = items.first else {
             stopProcessing()
             return
         }
-        
-        let item = items.removeFirst()
-        item.execute?(item.element)
+
+        item.execute(item.element)
+        items.removeFirst()
     }
 
     // 소비 프로세스를 시작하는 메서드
@@ -77,7 +82,7 @@ final class QueueProcessor<T> {
     }
 
     // 소비 프로세스를 중지하는 메서드
-    private func stopProcessing() {
+    func stopProcessing() {
         timer?.cancel()
         timer = nil
     }

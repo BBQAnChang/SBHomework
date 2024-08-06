@@ -59,7 +59,7 @@ public final class UserManager: SBUserManager {
     public var networkClient: SBNetworkClient = Network()
     public let userStorage: SBUserStorage = UserStorage()
     
-    private let queueProcessor = QueueProcessor<UserCreationParams>(maxQueueSize: 10)
+    private let queueProcessor = QueueProcessor<UserCreationParams>(maxQueueSize: UserManagerConstant.createMaxCount)
 
     public func initApplication(applicationId: String, apiToken: String) {
         if SBUserDefaults.appId != applicationId {
@@ -68,6 +68,8 @@ public final class UserManager: SBUserManager {
         
         networkClient.appId = applicationId
         networkClient.apiToken = apiToken
+
+        queueProcessor.stopProcessing()
     }
 
     public func createUser(params: UserCreationParams, completionHandler: ((UserResult) -> Void)?) {
