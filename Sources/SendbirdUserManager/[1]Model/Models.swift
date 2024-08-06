@@ -12,7 +12,7 @@ import Foundation
 ///   - userId: 생성될 user id
 ///   - nickname: 해당 user의 nickname
 ///   - profileURL: 해당 user의 profile로 사용될 image url
-public struct UserCreationParams {
+public struct UserCreationParams: Codable {
     public let userId: String
     public let nickname: String
     public let profileURL: String?
@@ -23,7 +23,7 @@ public struct UserCreationParams {
 ///   - userId: 업데이트할 User의 ID
 ///   - nickname: 새로운 nickname
 ///   - profileURL: 새로운 image url
-public struct UserUpdateParams {
+public struct UserUpdateParams: Codable {
     public let userId: String
     public let nickname: String?
     public let profileURL: String?

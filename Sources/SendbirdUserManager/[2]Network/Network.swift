@@ -23,7 +23,7 @@ public final class Network: SBNetworkClient {
 
     private var baseURL: String {
         guard let appId else { return "" }
-        return "https://api-\(appId).sendbird.com/v3/"
+        return "https://api-\(appId).sendbird.com/v3"
     }
 
     // https://sendbird.com/docs/chat/platform-api/v3/prepare-to-use-api#2-authentication 참조

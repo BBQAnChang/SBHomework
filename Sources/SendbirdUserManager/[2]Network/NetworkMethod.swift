@@ -10,4 +10,5 @@ import Foundation
 public enum NetworkMethod: String {
     case get = "GET"
     case post = "POST"
+    case put = "PUT"
 }
