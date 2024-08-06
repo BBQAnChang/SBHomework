@@ -69,7 +69,7 @@ extension UserCoreDataController {
             let deleteRequest = NSBatchDeleteRequest(fetchRequest: deleteFetch)
             deleteRequest.resultType = .resultTypeStatusOnly
 
-            if let batchDelete = try context.execute(deleteRequest) as? NSBatchDeleteResult {
+            if let _ = try context.execute(deleteRequest) as? NSBatchDeleteResult {
                 try context.save()
             }
         }

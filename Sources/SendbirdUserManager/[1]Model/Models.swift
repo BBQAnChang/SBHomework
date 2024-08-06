@@ -52,4 +52,6 @@ public struct SBUser: ServiceModelDescribing {
     public var userId: String
     public var nickname: String?
     public var profileURL: String?
+
+    var id: String { userId }
 }

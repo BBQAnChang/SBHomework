@@ -27,6 +27,8 @@ open class UserManagerBaseTests: XCTestCase {
         let initialUser = UserCreationParams(userId: userId, nickname: "hello", profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
 
         // Create 성공 "후" 캐싱이기 때문에 completion 타이밍에 테스트 하는것이 맞지 않나?
+        // 테스트를 보아하니 요구조건을 조금 바꿔야하는 것으로 보임
+        // Create 성공 "후" 캐싱이 아닌 요청 "후" 캐싱하고 실패시 제거하는것이 아닐까
         userManager.createUser(params: initialUser) { _ in
             // Check if the data exist
             let users = userManager.userStorage.getUsers()
