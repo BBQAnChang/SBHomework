@@ -18,6 +18,7 @@ public protocol Request {
     var header: [String: String] { get }
 
     func parse(_ data: Data) throws -> Response
+    func error(_ data: Data) throws -> APIErrorResponse
 }
 
 public extension Request {
@@ -25,6 +26,10 @@ public extension Request {
     var body: NetworkBody? { nil }
     var parameters: [String: Any] { [:] }
     var header: [String: String] { [:] }
+
+    func error(_ data: Data) throws -> APIErrorResponse {
+        return try JSONDecoder().decode(APIErrorResponse.self, from: data)
+    }
 }
 
 enum API { }

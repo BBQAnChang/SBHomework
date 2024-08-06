@@ -13,6 +13,7 @@ public enum NetworkError: Error {
     case invalidURL
     case requestFailed
     case decodingError
+    case badRequest(message: String, code: Int)
 }
 
 public final class Network: SBNetworkClient {
@@ -77,11 +78,16 @@ public final class Network: SBNetworkClient {
             }
 
             do {
-
                 let response = try request.parse(data)
                 completionHandler(.success(response))
             } catch {
-                completionHandler(.failure(error))
+                if let errorResponse = try? request.error(data) {
+                    completionHandler(.failure(
+                        NetworkError.badRequest(message: errorResponse.message, code: errorResponse.code))
+                    )
+                } else {
+                    completionHandler(.failure(error))
+                }
             }
         }
         
