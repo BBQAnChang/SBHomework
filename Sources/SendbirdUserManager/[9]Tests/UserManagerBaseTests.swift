@@ -156,7 +156,7 @@ open class UserManagerBaseTests: XCTestCase {
                 expectation.fulfill()
             }
         }
-        
+
         wait(for: [expectation], timeout: 10.0)
     }
     

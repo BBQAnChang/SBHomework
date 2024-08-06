@@ -58,8 +58,8 @@ public protocol SBUserManager {
 public final class UserManager: SBUserManager {
     public var networkClient: SBNetworkClient = Network()
     public let userStorage: SBUserStorage = UserStorage()
-
-    private var pendingUserCreationParams: [UserCreationParams] = []
+    
+    private let queueProcessor = QueueProcessor<UserCreationParams>(maxQueueSize: 10)
 
     public func initApplication(applicationId: String, apiToken: String) {
         if SBUserDefaults.appId != applicationId {
@@ -71,7 +71,23 @@ public final class UserManager: SBUserManager {
     }
 
     public func createUser(params: UserCreationParams, completionHandler: ((UserResult) -> Void)?) {
-        requestCreateUser(param: params, completionHandler: completionHandler)
+        do {
+            try queueProcessor.enqueue(
+                QueueProcessor.QueueItem(element: params) { [weak self] param in
+                    guard let self else { return }
+                    self.requestCreateUser(param: param) { userResult in
+                        switch userResult {
+                        case let .success(user):
+                            completionHandler?(.success(user))
+                        case let .failure(error):
+                            completionHandler?(.failure(error))
+                        }
+                    }
+                }
+            )
+        } catch {
+            completionHandler?(.failure(error))
+        }
     }
 
     public func createUsers(params: [UserCreationParams], completionHandler: ((UsersResult) -> Void)?) {
