@@ -95,18 +95,22 @@ public final class UserManager: SBUserManager {
     }
 
     public func getUser(userId: String, completionHandler: ((UserResult) -> Void)?) {
-        networkClient.request(request: API.GetUser(userId: userId)) { result in
-            switch result {
-            case let .success(response):
-                completionHandler?(.success(response.sbUser))
-            case let .failure(error):
-                completionHandler?(.failure(error))
+        if let user = userStorage.getUser(for: userId) {
+            completionHandler?(.success(user))
+        } else {
+            networkClient.request(request: API.GetUser(userId: userId)) { result in
+                switch result {
+                case let .success(response):
+                    completionHandler?(.success(response.sbUser))
+                case let .failure(error):
+                    completionHandler?(.failure(error))
+                }
             }
         }
     }
 
     public func getUsers(nicknameMatches: String, completionHandler: ((UsersResult) -> Void)?) {
-        networkClient.request(request: API.GetUsers(nickname: nicknameMatches)) { result in
+        networkClient.request(request: API.GetUsers(nickname: nicknameMatches, limit: 100)) { result in
             switch result {
             case let .success(response):
                 completionHandler?(.success(response.users.map { $0.sbUser }))

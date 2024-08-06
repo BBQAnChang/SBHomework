@@ -15,12 +15,14 @@ extension API {
 
         var method: NetworkMethod { .get }
         var path: String { "/users" }
-        var parameters: [String : Any] { ["nickname": nickname] }
+        var parameters: [String : Any] { ["nickname": nickname, "limit": limit] }
 
         private let nickname: String
+        private let limit: Int
 
-        init(nickname: String) {
+        init(nickname: String, limit: Int) {
             self.nickname = nickname
+            self.limit = limit
         }
 
         func parse(_ data: Data) throws -> Response {
