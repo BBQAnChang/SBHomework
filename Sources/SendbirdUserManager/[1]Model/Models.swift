@@ -13,6 +13,12 @@ import Foundation
 ///   - nickname: 해당 user의 nickname
 ///   - profileURL: 해당 user의 profile로 사용될 image url
 public struct UserCreationParams: Codable {
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case nickname
+        case profileURL = "profile_url" // 필수값이라는데?
+    }
+
     public let userId: String
     public let nickname: String
     public let profileURL: String?
@@ -24,6 +30,12 @@ public struct UserCreationParams: Codable {
 ///   - nickname: 새로운 nickname
 ///   - profileURL: 새로운 image url
 public struct UserUpdateParams: Codable {
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case nickname
+        case profileURL = "profile_url"
+    }
+    
     public let userId: String
     public let nickname: String?
     public let profileURL: String?

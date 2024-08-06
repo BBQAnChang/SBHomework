@@ -11,7 +11,7 @@ extension API {
     struct CreateUser: Request {
         var method: NetworkMethod { .post }
         var path: String { "/users" }
-        var body: NetworkBody? { nil }
+        var body: NetworkBody? { .json(object: requestParam) }
 
         private let requestParam: UserCreationParams
 

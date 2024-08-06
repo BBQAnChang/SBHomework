@@ -59,6 +59,8 @@ public final class UserManager: SBUserManager {
     public var networkClient: SBNetworkClient = Network()
     public let userStorage: SBUserStorage = UserStorage()
 
+    private var pendingUserCreationParams: [UserCreationParams] = []
+
     public func initApplication(applicationId: String, apiToken: String) {
         if SBUserDefaults.appId != applicationId {
             userStorage.clear()
@@ -69,18 +71,11 @@ public final class UserManager: SBUserManager {
     }
 
     public func createUser(params: UserCreationParams, completionHandler: ((UserResult) -> Void)?) {
-        networkClient.request(request: API.CreateUser(requestParam: params)) { [weak self] result in
-            switch result {
-            case let .success(response):
-                self?.didSuccessUpsert(response, completionHandler: completionHandler)
-            case let .failure(error):
-                completionHandler?(.failure(error))
-            }
-        }
+        requestCreateUser(param: params, completionHandler: completionHandler)
     }
 
     public func createUsers(params: [UserCreationParams], completionHandler: ((UsersResult) -> Void)?) {
-
+        requestCreateUserWithInterval(params: params, completionHandler: completionHandler)
     }
 
     public func updateUser(params: UserUpdateParams, completionHandler: ((UserResult) -> Void)?) {
@@ -110,6 +105,11 @@ public final class UserManager: SBUserManager {
     }
 
     public func getUsers(nicknameMatches: String, completionHandler: ((UsersResult) -> Void)?) {
+        guard nicknameMatches.isEmpty == false else {
+            completionHandler?(.failure(UserManagerError.emptyNickname))
+            return
+        }
+
         networkClient.request(request: API.GetUsers(nickname: nicknameMatches, limit: 100)) { result in
             switch result {
             case let .success(response):
@@ -124,5 +124,61 @@ public final class UserManager: SBUserManager {
         let localUser = response.sbUser
         userStorage.upsertUser(localUser)
         completionHandler?(.success(localUser))
+    }
+
+    private func requestCreateUserWithInterval(params: [UserCreationParams], completionHandler: ((UsersResult) -> Void)?) {
+        let adjustedParams = Array(params.prefix(UserManagerConstant.createMaxCount))
+        let interval = 1.0
+       
+        var failedUsers: [SBUser] = {
+            if params.count > UserManagerConstant.createMaxCount {
+                return Array(params.suffix(params.count - UserManagerConstant.createMaxCount))
+                    .map { .init(userId: $0.userId, nickname: $0.nickname, profileURL: $0.profileURL) }
+            } else {
+                return []
+            }
+        }()
+
+        var successUsers: [SBUser] = []
+        let dispatchGroup = DispatchGroup()
+
+        for (index, param) in adjustedParams.enumerated() {
+            dispatchGroup.enter()
+
+            // Schedule API request with delay
+            DispatchQueue.global().asyncAfter(deadline: .now() + interval * Double(index)) { [weak self] in
+                guard let self else { return }
+                self.requestCreateUser(param: param) { result in
+                    switch result {
+                    case .success:
+                        successUsers.append(.init(userId: param.userId, nickname: param.nickname, profileURL: param.profileURL))
+                    case .failure:
+                        failedUsers.append(.init(userId: param.userId, nickname: param.nickname, profileURL: param.profileURL))
+                    }
+                    dispatchGroup.leave()
+                }
+            }
+        }
+
+        dispatchGroup.wait()
+
+        guard failedUsers.isEmpty else {
+            completionHandler?(.failure(UserManagerError.createUsersFailed(failedUsers)))
+            return
+        }
+
+        completionHandler?(.success(successUsers))
+    }
+
+    private func requestCreateUser(param: UserCreationParams, completionHandler: ((UserResult) -> Void)?) {
+        networkClient.request(request: API.CreateUser(requestParam: param)) { [weak self] result in
+            switch result {
+            case let .success(response):
+                self?.didSuccessUpsert(response, completionHandler: nil)
+                completionHandler?(.success(response.sbUser))
+            case let .failure(error):
+                completionHandler?(.failure(error))
+            }
+        }
     }
 }

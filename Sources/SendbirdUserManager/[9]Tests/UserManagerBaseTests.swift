@@ -24,19 +24,21 @@ open class UserManagerBaseTests: XCTestCase {
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)    // Note: Add the first application ID and API Token
 
         let userId = UUID().uuidString
-        let initialUser = UserCreationParams(userId: userId, nickname: "hello", profileURL: nil)
-        userManager.createUser(params: initialUser) { _ in }
-        
-        // Check if the data exist
-        let users = userManager.userStorage.getUsers()
-        XCTAssertEqual(users.count, 1, "User should exist with an initial Application ID")
-        
-        // Second init with a different App ID
-        userManager.initApplication(applicationId: "AppID2", apiToken: "Token2")    // Note: Add the second application ID and API Token
-        
-        // Check if the data is cleared
-        let clearedUsers = userManager.userStorage.getUsers()
-        XCTAssertEqual(clearedUsers.count, 0, "Data should be cleared after initializing with a different Application ID")
+        let initialUser = UserCreationParams(userId: userId, nickname: "hello", profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+
+        // Create 성공 "후" 캐싱이기 때문에 completion 타이밍에 테스트 하는것이 맞지 않나?
+        userManager.createUser(params: initialUser) { _ in
+            // Check if the data exist
+            let users = userManager.userStorage.getUsers()
+            XCTAssertEqual(users.count, 1, "User should exist with an initial Application ID")
+
+            // Second init with a different App ID
+            userManager.initApplication(applicationId: "AppID2", apiToken: "Token2")    // Note: Add the second application ID and API Token
+
+            // Check if the data is cleared
+            let clearedUsers = userManager.userStorage.getUsers()
+            XCTAssertEqual(clearedUsers.count, 0, "Data should be cleared after initializing with a different Application ID")
+        }
     }
     
     public func testCreateUser() throws {
@@ -45,7 +47,7 @@ open class UserManagerBaseTests: XCTestCase {
         
         let userId = UUID().uuidString
         let userNickname = UUID().uuidString
-        let params = UserCreationParams(userId: userId, nickname: userNickname, profileURL: nil)
+        let params = UserCreationParams(userId: userId, nickname: userNickname, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
         let expectation = self.expectation(description: "Wait for user creation")
         
         userManager.createUser(params: params) { result in
@@ -72,9 +74,9 @@ open class UserManagerBaseTests: XCTestCase {
         let userId2 = UUID().uuidString
         let userNickname2 = UUID().uuidString
         
-        let params1 = UserCreationParams(userId: userId1, nickname: userNickname1, profileURL: nil)
-        let params2 = UserCreationParams(userId: userId2, nickname: userNickname2, profileURL: nil)
-        
+        let params1 = UserCreationParams(userId: userId1, nickname: userNickname1, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+        let params2 = UserCreationParams(userId: userId2, nickname: userNickname2, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+
         let expectation = self.expectation(description: "Wait for users creation")
     
         userManager.createUsers(params: [params1, params2]) { result in
@@ -100,9 +102,9 @@ open class UserManagerBaseTests: XCTestCase {
         let initialUserNickname = UUID().uuidString
         let updatedUserNickname = UUID().uuidString
         
-        let initialParams = UserCreationParams(userId: userId, nickname: initialUserNickname, profileURL: nil)
-        let updatedParams = UserUpdateParams(userId: userId, nickname: updatedUserNickname, profileURL: nil)
-        
+        let initialParams = UserCreationParams(userId: userId, nickname: initialUserNickname, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+        let updatedParams = UserUpdateParams(userId: userId, nickname: updatedUserNickname, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+
         let expectation = self.expectation(description: "Wait for user update")
         
         userManager.createUser(params: initialParams) { creationResult in
@@ -133,8 +135,8 @@ open class UserManagerBaseTests: XCTestCase {
         let userId = UUID().uuidString
         let userNickname = UUID().uuidString
         
-        let params = UserCreationParams(userId: userId, nickname: userNickname, profileURL: nil)
-        
+        let params = UserCreationParams(userId: userId, nickname: userNickname, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+
         let expectation = self.expectation(description: "Wait for user retrieval")
         
         userManager.createUser(params: params) { creationResult in
@@ -168,9 +170,9 @@ open class UserManagerBaseTests: XCTestCase {
         let userId2 = UUID().uuidString
         let userNickname2 = UUID().uuidString
         
-        let params1 = UserCreationParams(userId: userId1, nickname: userNickname1, profileURL: nil)
-        let params2 = UserCreationParams(userId: userId2, nickname: userNickname2, profileURL: nil)
-        
+        let params1 = UserCreationParams(userId: userId1, nickname: userNickname1, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+        let params2 = UserCreationParams(userId: userId2, nickname: userNickname2, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+
         let expectation = self.expectation(description: "Wait for users retrieval with nickname filter")
         
         userManager.createUsers(params: [params1, params2]) { creationResult in
@@ -200,8 +202,8 @@ open class UserManagerBaseTests: XCTestCase {
         let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
-        let users = (0..<11).map { UserCreationParams(userId: "user_id_\(UUID().uuidString)\($0)", nickname: "nickname_\(UUID().uuidString)\($0)", profileURL: nil) }
-        
+        let users = (0..<11).map { UserCreationParams(userId: "user_id_\(UUID().uuidString)\($0)", nickname: "nickname_\(UUID().uuidString)\($0)", profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png") }
+
         let expectation = self.expectation(description: "Wait for users creation with limit")
         
         userManager.createUsers(params: users) { result in
@@ -227,9 +229,9 @@ open class UserManagerBaseTests: XCTestCase {
         let initialUserNickname = UUID().uuidString
         let updatedUserNickname = UUID().uuidString
         
-        let initialParams = UserCreationParams(userId: userId, nickname: initialUserNickname, profileURL: nil)
-        let updatedParams = UserUpdateParams(userId: userId, nickname: updatedUserNickname, profileURL: nil)
-        
+        let initialParams = UserCreationParams(userId: userId, nickname: initialUserNickname, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+        let updatedParams = UserUpdateParams(userId: userId, nickname: updatedUserNickname, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
+
         let expectation1 = self.expectation(description: "Wait for user update")
         let expectation2 = self.expectation(description: "Wait for user retrieval")
         
@@ -290,7 +292,7 @@ open class UserManagerBaseTests: XCTestCase {
         
         for _ in 0..<11 {
             dispatchGroup.enter()
-            let params = UserCreationParams(userId: UUID().uuidString, nickname: UUID().uuidString, profileURL: nil)
+            let params = UserCreationParams(userId: UUID().uuidString, nickname: UUID().uuidString, profileURL: "https://cdn-icons-png.flaticon.com/128/4170/4170229.png")
             userManager.createUser(params: params) { result in
                 results.append(result)
                 dispatchGroup.leave()
