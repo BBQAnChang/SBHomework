@@ -66,6 +66,7 @@ public final class Network: SBNetworkClient {
         deafaultHeader.forEach { urlRequest.addValue($1, forHTTPHeaderField: $0) }
         request.header.forEach { urlRequest.addValue($1, forHTTPHeaderField: $0) }
 
+        // Task 저장하고 cancel 필요한가...(?)
         let task = session.dataTask(with: urlRequest) { data, _, error in
             if let error {
                 completionHandler(.failure(error))
